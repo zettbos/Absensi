@@ -1,0 +1,2281 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dashboard Absensi Siswa Cerdas</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Font: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              orange: '#f97316',
+              orangeLight: '#ffedd5',
+              orangeDark: '#ea580c',
+              green: '#22c55e',
+              greenDark: '#16a34a',
+              yellow: '#eab308',
+              red: '#ef4444',
+              redDark: '#dc2626'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+
+    /* Animasi Shutter Kamera */
+    @keyframes shutterFlash {
+      0% {
+        opacity: 0;
+      }
+
+      50% {
+        opacity: 0.9;
+        background: white;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    .shutter-active {
+      animation: shutterFlash 0.35s ease-out;
+    }
+
+    /* Radar Scanner GPS Pulse */
+    @keyframes radarPulse {
+      0% {
+        transform: scale(0.9);
+        opacity: 0.8;
+      }
+
+      50% {
+        transform: scale(1.3);
+        opacity: 0.3;
+      }
+
+      100% {
+        transform: scale(0.9);
+        opacity: 0.8;
+      }
+    }
+
+    .radar-pulse {
+      animation: radarPulse 2s infinite ease-in-out;
+    }
+
+    /* Soft Shadow Elevation */
+    .card-elevated {
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Scanner Oval Laser Beam */
+    @keyframes scannerLaser {
+      0% {
+        top: 15%;
+        opacity: 0.3;
+      }
+
+      50% {
+        top: 80%;
+        opacity: 0.8;
+      }
+
+      100% {
+        top: 15%;
+        opacity: 0.3;
+      }
+    }
+
+    .scanner-laser {
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #22c55e, transparent);
+      box-shadow: 0 0 10px #22c55e;
+      animation: scannerLaser 2.5s infinite linear;
+    }
+
+    /* Efek Mirror Kamera Depan */
+    .mirror-video {
+      transform: scaleX(-1);
+    }
+  </style>
+</head>
+
+<body class="bg-[#f4f7fb] text-slate-800 antialiased min-h-screen pb-16 md:pb-8">
+
+  <!-- Container Utama -->
+  <div class="max-w-6xl mx-auto px-4 py-4 md:py-6">
+
+    <!-- Top Bar Navigasi & Pencarian -->
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div>
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">Dashboard</h1>
+          <!-- Indikator Status Koneksi API GAS -->
+          <button type="button" onclick="bukaModalApiConfig()" id="badgeApiConnection"
+            title="Klik untuk pengaturan koneksi API Google Apps Script"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer">
+            <span id="dotApiConnection" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="textApiConnection">API GAS Terhubung</span>
+          </button>
+        </div>
+        <p class="text-xs md:text-sm font-medium text-slate-500 mt-0.5" id="textTanggalHeader">Memuat tanggal...</p>
+      </div>
+
+      <!-- Action & Search -->
+      <div class="flex items-center gap-2.5">
+        <div class="relative flex-1 md:w-64">
+          <input type="text" id="searchInput" oninput="handleSearch(this.value)" placeholder="Cari siswa, kelas, NIS..."
+            class="w-full pl-9 pr-4 py-2 text-xs md:text-sm bg-white border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition shadow-sm">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+
+        <!-- Tombol Buka Kalender Kustom -->
+        <button type="button" onclick="bukaModalKalender()" title="Buka Kalender"
+          class="p-2.5 bg-white border border-slate-200 rounded-full hover:bg-slate-50 text-slate-600 transition shadow-sm flex items-center justify-center">
+          <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+        </button>
+
+        <!-- Tombol Pengaturan Link API Google Apps Script -->
+        <button type="button" onclick="bukaModalApiConfig()" title="Pengaturan API Google Apps Script"
+          class="p-2.5 bg-white border border-slate-200 rounded-full hover:bg-slate-50 text-slate-600 transition shadow-sm flex items-center justify-center">
+          <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+            </path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
+            </path>
+          </svg>
+        </button>
+
+        <!-- Tombol Sinkronisasi Data Cepat -->
+        <button type="button" onclick="sinkronisasiSemuaData()" title="Perbarui Data dari Google Sheets"
+          class="p-2.5 bg-white border border-slate-200 rounded-full hover:bg-slate-50 text-slate-600 transition shadow-sm active:rotate-180 duration-300">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+            </path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigasi Tab Utama (Mobile & Desktop) -->
+    <div class="flex items-center gap-2 p-1.5 bg-slate-200/70 rounded-2xl mb-6 overflow-x-auto custom-scroll">
+      <button type="button" onclick="gantiTab('dashboard')" id="tabBtnDashboard"
+        class="tab-btn flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-xs md:text-sm font-bold transition flex items-center justify-center gap-2 bg-white text-slate-900 shadow-sm">
+        <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+          </path>
+        </svg>
+        Dashboard
+      </button>
+
+      <button type="button" onclick="gantiTab('kamera')" id="tabBtnKamera"
+        class="tab-btn flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs md:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900">
+        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+          </path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z">
+          </path>
+        </svg>
+        Absen Kamera
+      </button>
+
+      <button type="button" onclick="gantiTab('riwayat')" id="tabBtnRiwayat"
+        class="tab-btn flex-1 min-w-[130px] py-2.5 px-4 rounded-xl text-xs md:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900">
+        <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+          </path>
+        </svg>
+        Data Presensi
+      </button>
+
+      <button type="button" onclick="gantiTab('ekspor')" id="tabBtnEkspor"
+        class="tab-btn flex-1 min-w-[120px] py-2.5 px-4 rounded-xl text-xs md:text-sm font-semibold transition flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900">
+        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+        </svg>
+        Ekspor / Rekap
+      </button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- KONTEN TAB 1: DASHBOARD (SESUAI DESAIN FOTO REFERENSI + KALENDER KUSTOM) -->
+    <!-- ========================================================================= -->
+    <section id="viewDashboard" class="space-y-6">
+
+      <!-- Baris Atas: Hero Banner Oranye + Kartu Metrik Warna (Merah, Kuning, Hijau) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+        <!-- Hero Card Oranye: Absensi Siswa & Ilustrasi Kalender -->
+        <div
+          class="lg:col-span-7 bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-lg shadow-orange-500/20 flex flex-col justify-between min-h-[190px]">
+          <div class="relative z-10 max-w-xs">
+            <span
+              class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[11px] font-bold tracking-wide uppercase mb-2">Portal
+              Akademik • GitHub Pages</span>
+            <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight">Absensi Siswa</h2>
+            <p class="text-xs md:text-sm text-orange-100 mt-1">Presensi digital presisi berbasis live selfie & lokasi
+              GPS terintegrasi Google Drive.</p>
+          </div>
+
+          <!-- Tombol Aksi Cepat Buka Kamera -->
+          <div class="relative z-10 pt-4">
+            <button type="button" onclick="gantiTab('kamera')"
+              class="px-5 py-2.5 bg-white text-orange-600 rounded-xl font-bold text-xs md:text-sm shadow-md hover:bg-orange-50 transition active:scale-95 inline-flex items-center gap-2">
+              <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                </path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              Mulai Absen Kamera Sekarang
+            </button>
+          </div>
+
+          <!-- Aksen Vektor Ilustrasi Kalender 3D Sesuai Foto -->
+          <div class="absolute -right-3 -bottom-4 md:right-4 md:bottom-2 opacity-90 pointer-events-none">
+            <div
+              class="w-28 h-28 md:w-36 md:h-36 bg-white/10 rounded-3xl p-3 backdrop-blur-sm transform rotate-6 border border-white/20 flex flex-col justify-between shadow-xl">
+              <div class="flex items-center justify-between pb-1 border-b border-white/20">
+                <div class="w-2.5 h-2.5 bg-red-400 rounded-full"></div>
+                <div class="w-2.5 h-2.5 bg-amber-400 rounded-full"></div>
+                <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
+              </div>
+              <div class="grid grid-cols-3 gap-1.5 p-1 text-center font-black text-white/80 text-xs">
+                <span>•</span><span>•</span><span>•</span>
+                <span>•</span><span>•</span><span>•</span>
+                <span>•</span><span>•</span><span>•</span>
+              </div>
+              <div class="text-[10px] text-center font-bold text-white/60 uppercase">Hari Ini</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kartu Metrik Warna Sesuai Foto: Merah (Tanpa Keterangan), Kuning (Izin), Hijau (Hadir) -->
+        <div class="lg:col-span-5 grid grid-cols-2 gap-4">
+
+          <!-- Kartu Merah: Tanpa Keterangan (Alpa) -->
+          <div class="bg-red-500 rounded-3xl p-5 text-white flex flex-col justify-between shadow-md shadow-red-500/20">
+            <span class="text-xs font-semibold text-red-100">Tanpa Keterangan</span>
+            <div class="mt-2">
+              <span id="statAlpa" class="text-3xl md:text-4xl font-extrabold tracking-tight">0</span>
+              <p class="text-[10px] text-red-100 mt-0.5">Siswa Alpa</p>
+            </div>
+          </div>
+
+          <!-- Kartu Kuning/Gold: Izin / Sakit -->
+          <div
+            class="bg-amber-400 rounded-3xl p-5 text-white flex flex-col justify-between shadow-md shadow-amber-400/20">
+            <span class="text-xs font-semibold text-amber-900/80">Izin / Sakit</span>
+            <div class="mt-2">
+              <span id="statIzin" class="text-3xl md:text-4xl font-extrabold tracking-tight text-amber-950">0</span>
+              <p class="text-[10px] text-amber-900/70 mt-0.5">Dispensasi</p>
+            </div>
+          </div>
+
+          <!-- Kartu Hijau: Hadir (Lebar 2 Kolom) -->
+          <div
+            class="col-span-2 bg-emerald-500 rounded-3xl p-5 text-white flex items-center justify-between shadow-md shadow-emerald-500/20">
+            <div>
+              <span class="text-xs font-semibold text-emerald-100 uppercase tracking-wide">Total Kehadiran</span>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span id="statHadir" class="text-4xl md:text-5xl font-extrabold tracking-tight">0</span>
+                <span id="statTotalSiswa" class="text-xs text-emerald-100 font-medium">/ 0 Total Siswa</span>
+              </div>
+              <p class="text-[11px] text-emerald-100 mt-1" id="labelStatusSinkron">Status: Sinkron Google Sheets</p>
+            </div>
+
+            <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Riwayat Absensi Siswa (Strip Tanggal Kalender Horizontal Sesuai Foto + Popup Kustom) -->
+      <div class="bg-white rounded-3xl p-6 card-elevated border border-slate-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-lg font-bold text-slate-900">Riwayat Absensi Siswa</h3>
+              <span id="badgeActiveDatePill"
+                class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-orange-100 text-orange-600">Hari
+                Ini</span>
+            </div>
+            <p class="text-xs text-slate-400" id="labelRentangMinggu">Pekan Berjalan</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!-- Tombol Buka Kalender Kustom Interaktif -->
+            <button type="button" onclick="bukaModalKalender()"
+              class="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-3.5 rounded-xl transition flex items-center gap-2">
+              <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <span id="btnLabelBulan">Pilih Bulan & Tanggal</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Strip Tanggal Kalender Horizontal Interaktif (Bebas Datepicker Google) -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 custom-scroll" id="containerStripTanggal">
+          <!-- Di-generate otomatis lewat JavaScript -->
+        </div>
+      </div>
+
+      <!-- Bagian: Absensi Kelas (Grid Kartu Kelas Sesuai Foto: X RPL A, B, C, D) -->
+      <div class="bg-white rounded-3xl p-6 card-elevated border border-slate-100">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Absensi Kelas</h3>
+            <p class="text-xs text-slate-400">Klik kartu kelas untuk melihat detail nama dan presensi seluruh murid.</p>
+          </div>
+          <button type="button" onclick="gantiTab('riwayat')"
+            class="text-xs font-bold text-orange-600 hover:text-orange-700 transition">
+            Lihat Selengkapnya &rarr;
+          </button>
+        </div>
+
+        <!-- Grid Kartu Kelas (Interaktif: Klik membuka data murid per kelas) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="gridKartuKelas">
+          <div class="animate-pulse bg-slate-100 rounded-2xl h-36"></div>
+          <div class="animate-pulse bg-slate-100 rounded-2xl h-36"></div>
+          <div class="animate-pulse bg-slate-100 rounded-2xl h-36"></div>
+          <div class="animate-pulse bg-slate-100 rounded-2xl h-36"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- KONTEN SUB-VIEW: DETAIL DATA SISWA PER KELAS (DIPICU SAAT CARD DIKLIK) -->
+    <!-- ========================================================================= -->
+    <section id="viewDetailKelas" class="hidden space-y-6">
+
+      <!-- Top Breadcrumb & Tombol Kembali -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-xs md:text-sm text-slate-500">
+          <button type="button" onclick="gantiTab('dashboard')"
+            class="hover:text-orange-600 font-bold flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18">
+              </path>
+            </svg>
+            Dashboard
+          </button>
+          <span>/</span>
+          <span>Detail Kelas</span>
+          <span>/</span>
+          <span class="font-extrabold text-slate-800" id="detailBreadcrumbKelas">X RPL A</span>
+        </div>
+
+        <button type="button" onclick="gantiTab('dashboard')"
+          class="text-xs font-bold bg-white border border-slate-200 px-3 py-1.5 rounded-xl hover:bg-slate-50 transition shadow-sm">
+          Kembali ke Dashboard
+        </button>
+      </div>
+
+      <!-- Hero Profil Kelas -->
+      <div
+        class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-3xl p-6 card-elevated flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <span
+            class="inline-block px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs font-bold mb-2">Rombongan
+            Belajar</span>
+          <h2 class="text-2xl md:text-3xl font-extrabold" id="detailNamaKelas">X RPL A</h2>
+          <div class="flex flex-wrap items-center gap-4 text-xs text-slate-300 mt-2">
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253">
+                </path>
+              </svg>
+              <b class="text-white">Mapel:</b> <span id="detailMapelKelas">Basis Data</span>
+            </span>
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+              <b class="text-white">Wali Kelas:</b> <span id="detailWaliKelas">Al-Mu'allimah</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Metrik Mini Kelas -->
+        <div class="flex items-center gap-3">
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 text-center min-w-[70px]">
+            <span class="text-xs text-slate-400 block font-semibold">Total</span>
+            <span class="text-xl font-extrabold text-white" id="detailTotalMurid">0</span>
+          </div>
+          <div class="bg-emerald-500/20 border border-emerald-500/30 rounded-2xl p-3 text-center min-w-[70px]">
+            <span class="text-xs text-emerald-300 block font-semibold">Hadir</span>
+            <span class="text-xl font-extrabold text-emerald-400" id="detailHadirMurid">0</span>
+          </div>
+          <div class="bg-amber-500/20 border border-amber-500/30 rounded-2xl p-3 text-center min-w-[70px]">
+            <span class="text-xs text-amber-300 block font-semibold">Izin</span>
+            <span class="text-xl font-extrabold text-amber-400" id="detailIzinMurid">0</span>
+          </div>
+          <div class="bg-red-500/20 border border-red-500/30 rounded-2xl p-3 text-center min-w-[70px]">
+            <span class="text-xs text-red-300 block font-semibold">Alpa</span>
+            <span class="text-xl font-extrabold text-red-400" id="detailAlpaMurid">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabel & Daftar Siswa di Kelas Ini -->
+      <div class="bg-white rounded-3xl p-6 card-elevated border border-slate-100">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <h3 class="text-lg font-bold text-slate-900">Daftar Siswa & Status Kehadiran Hari Ini</h3>
+          <span class="text-xs text-slate-400">Pilih siswa untuk langsung melakukan presensi kamera.</span>
+        </div>
+
+        <!-- Tabel Siswa -->
+        <div class="overflow-x-auto custom-scroll border border-slate-100 rounded-2xl">
+          <table class="w-full text-left border-collapse text-xs md:text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-100">
+                <th class="p-3.5">NIS</th>
+                <th class="p-3.5">Nama Lengkap</th>
+                <th class="p-3.5">Gender</th>
+                <th class="p-3.5">Status Hari Ini</th>
+                <th class="p-3.5 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDetailSiswa" class="divide-y divide-slate-100">
+              <!-- Render Dinamis JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- KONTEN TAB 2: FITUR ABSEN KAMERA (AUTO-START LIVE CAMERA + DRIVE SYNC)    -->
+    <!-- ========================================================================= -->
+    <section id="viewKamera" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 md:p-8 card-elevated border border-slate-100">
+
+        <div class="text-center max-w-lg mx-auto mb-6">
+          <span
+            class="inline-block px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-xs font-bold uppercase tracking-wider mb-2">Live
+            Camera & Google Drive Sync</span>
+          <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900">Presensi Wajah Langsung</h2>
+          <p class="text-xs md:text-sm text-slate-500 mt-1">Kamera aktif otomatis. Foto presensi langsung tersimpan ke
+            folder Google Drive & tercatat di Google Sheets.</p>
+        </div>
+
+        <!-- Layout Split Responsif: Kiri Viewfinder Kamera, Kanan Form Profil Siswa -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+          <!-- Kolom Kiri: Viewfinder Live Camera (7 Kolom di PC) -->
+          <div class="lg:col-span-7 flex flex-col items-center">
+
+            <div
+              class="relative w-full aspect-[4/3] max-w-lg bg-slate-950 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center border-4 border-slate-900">
+
+              <!-- Video Live Webcam -->
+              <video id="videoElement" autoplay playsinline muted
+                class="w-full h-full object-cover mirror-video"></video>
+
+              <!-- Canvas Tersembunyi untuk Snapshot Frame -->
+              <canvas id="canvasCapture" class="hidden"></canvas>
+
+              <!-- Preview Foto Hasil Jepretan -->
+              <img id="imagePreview" class="hidden w-full h-full object-cover absolute inset-0 z-10"
+                alt="Preview Absensi">
+
+              <!-- Flash Shutter Effect -->
+              <div id="shutterEffect" class="absolute inset-0 pointer-events-none z-20"></div>
+
+              <!-- Frame Panduan Oval Wajah Bercahaya & Laser Scanner -->
+              <div id="framePanduanWajah"
+                class="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                <div
+                  class="relative w-48 h-60 md:w-56 md:h-72 border-2 border-dashed border-emerald-400/80 rounded-[45%] flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                  <div class="scanner-laser"></div>
+                  <span
+                    class="text-[11px] font-bold text-white bg-black/60 px-3 py-1 rounded-full backdrop-blur-md">Posisikan
+                    Wajah di Sini</span>
+                </div>
+              </div>
+
+              <!-- Indikator Status Kamera -->
+              <div class="absolute top-3 left-3 z-20 flex items-center gap-2">
+                <span id="badgeKameraStatus"
+                  class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-black/60 text-white backdrop-blur-md">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Live Webcam Aktif
+                </span>
+              </div>
+
+              <!-- Tombol Switch Kamera Depan/Belakang -->
+              <button type="button" onclick="toggleSwitchKamera()" title="Ganti Kamera Depan/Belakang"
+                class="absolute top-3 right-3 z-20 p-2.5 rounded-full bg-black/60 text-white hover:bg-black/80 backdrop-blur-md transition shadow-md">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                  </path>
+                </svg>
+              </button>
+
+              <!-- Box Izin Kamera (Hanya Muncul Jika Izin Kamera Ditolak / Perangkat Tanpa Webcam) -->
+              <div id="boxIzinKamera"
+                class="hidden absolute inset-0 bg-slate-900/95 p-6 flex flex-col items-center justify-center text-center z-30">
+                <div
+                  class="w-14 h-14 bg-orange-500/20 text-orange-400 rounded-full flex items-center justify-center mb-3">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                </div>
+                <h4 class="text-white font-extrabold text-base">Akses Kamera Diperlukan</h4>
+                <p class="text-xs text-slate-300 mt-1 max-w-xs">
+                  Klik <b>Allow / Izinkan</b> pada popup browser, atau pilih metode kamera di bawah ini:
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-center gap-2.5 mt-4 w-full max-w-xs">
+                  <!-- Opsi 1: Live Webcam Browser -->
+                  <button type="button" onclick="mulaiKamera()"
+                    class="flex-1 w-full py-2.5 px-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl text-xs font-bold shadow-lg transition active:scale-95 flex items-center justify-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                      </path>
+                    </svg>
+                    <span>Coba Live Webcam</span>
+                  </button>
+
+                  <!-- Opsi 2: Buka Kamera Bawaan HP (Native Smartphone Camera) -->
+                  <label
+                    class="flex-1 w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-lg transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>Buka Kamera HP</span>
+                    <input type="file" id="inputKameraHPModal" accept="image/*" capture="user"
+                      onchange="handleFotoKameraHP(event)" class="hidden">
+                  </label>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Baris Kontrol Kamera di Bawah Viewfinder -->
+            <div class="w-full max-w-lg flex flex-wrap items-center justify-between gap-2 mt-3.5">
+              <div class="flex flex-wrap items-center gap-2">
+                <!-- Tombol Jepret Preview Manual -->
+                <button type="button" onclick="tangkapFotoDariVideo()"
+                  class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                  <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                    </path>
+                  </svg>
+                  Ambil Snapshot
+                </button>
+
+                <button type="button" onclick="mulaiKamera()"
+                  class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                  <svg class="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
+                    </path>
+                  </svg>
+                  Restart Kamera
+                </button>
+
+                <label
+                  class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+                  <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  </svg>
+                  Kamera HP Native
+                  <input type="file" id="inputKameraHPDirect" accept="image/*" capture="user"
+                    onchange="handleFotoKameraHP(event)" class="hidden">
+                </label>
+              </div>
+
+              <button type="button" id="btnUlangiFoto" onclick="ulangiFoto()"
+                class="hidden px-3.5 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-xs font-bold hover:bg-red-100 transition">
+                Ulangi Jepretan
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Kolom Kanan: Form Data Siswa & Radar GPS (5 Kolom di PC) -->
+          <div class="lg:col-span-5 space-y-4">
+
+            <div class="bg-slate-50 p-5 rounded-3xl border border-slate-200/80 space-y-4">
+
+              <!-- Pilih Kelas -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Kelas</label>
+                <select id="selectKelasForm" onchange="filterSiswaByKelas(this.value)"
+                  class="w-full text-xs md:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-400 shadow-sm font-semibold">
+                  <option value="">-- Pilih Kelas --</option>
+                </select>
+              </div>
+
+              <!-- Pilih Siswa -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Siswa</label>
+                <select id="selectSiswaForm"
+                  class="w-full text-xs md:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-400 shadow-sm font-semibold">
+                  <option value="">-- Pilih Nama Siswa --</option>
+                </select>
+              </div>
+
+              <!-- Sesi Masuk / Pulang (Segmented Toggle) -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Sesi Presensi</label>
+                <div class="grid grid-cols-2 gap-2 bg-slate-200/70 p-1 rounded-2xl">
+                  <button type="button" onclick="setSesi('Masuk')" id="btnSesiMasuk"
+                    class="py-2 text-xs font-extrabold rounded-xl bg-orange-500 text-white transition shadow-sm">
+                    Masuk
+                  </button>
+                  <button type="button" onclick="setSesi('Pulang')" id="btnSesiPulang"
+                    class="py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition">
+                    Pulang
+                  </button>
+                </div>
+              </div>
+
+              <!-- Status Kehadiran -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Status Kehadiran</label>
+                <select id="selectStatusForm"
+                  class="w-full text-xs md:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-400 shadow-sm font-semibold">
+                  <option value="Hadir">Hadir Tepat Waktu</option>
+                  <option value="Izin">Izin (Dispensasi)</option>
+                  <option value="Sakit">Sakit</option>
+                </select>
+              </div>
+
+              <!-- Catatan Keterangan -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Catatan / Keterangan (Opsional)</label>
+                <input type="text" id="inputKeterangan" placeholder="Contoh: Tepat waktu / mengikuti lomba"
+                  class="w-full text-xs md:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-400 shadow-sm">
+              </div>
+
+              <!-- Radar Sinyal GPS Real-Time -->
+              <div class="p-3 bg-white rounded-2xl border border-slate-200 flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2.5">
+                  <div class="relative w-3.5 h-3.5">
+                    <span class="absolute inset-0 bg-emerald-500 rounded-full radar-pulse"></span>
+                    <span class="relative block w-3.5 h-3.5 bg-emerald-500 rounded-full"></span>
+                  </div>
+                  <div>
+                    <span class="font-bold text-slate-800 block text-[11px]">Sinyal Satelit GPS</span>
+                    <span id="textKoordinatGPS" class="text-[10px] text-slate-400 font-mono">Mendeteksi
+                      koordinat...</span>
+                  </div>
+                </div>
+                <button type="button" onclick="ambilKoordinatGPS()"
+                  class="text-orange-600 font-bold hover:underline text-[11px]">Refresh</button>
+              </div>
+
+            </div>
+
+            <!-- Tombol Eksekusi Jepret & Simpan Presensi ke Google Drive & Sheets -->
+            <button type="button" id="btnJepretAbsen" onclick="eksekusiPresensi()"
+              class="w-full py-4 px-6 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-2xl text-sm font-extrabold shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-amber-600 active:scale-95 transition flex items-center justify-center gap-2">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                </path>
+              </svg>
+              <span>Jepret & Simpan ke Google Drive</span>
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- KONTEN TAB 3: DATA PRESENSI & TABEL RIWAYAT LENGKAP -->
+    <!-- ========================================================================= -->
+    <section id="viewRiwayat" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 card-elevated border border-slate-100">
+
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900">Data & Riwayat Presensi</h2>
+            <p class="text-xs text-slate-500">Log kehadiran terverifikasi foto Google Drive dan koordinat GPS.</p>
+          </div>
+
+          <!-- Filter Pills Cepat -->
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="filterKelasRiwayat" onchange="filterTabelRiwayat()"
+              class="text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-700 py-2 px-3 rounded-xl focus:ring-2 focus:ring-orange-400">
+              <option value="Semua">Semua Kelas</option>
+              <option value="X RPL A">X RPL A</option>
+              <option value="X RPL B">X RPL B</option>
+              <option value="X RPL C">X RPL C</option>
+              <option value="X RPL D">X RPL D</option>
+            </select>
+
+            <select id="filterStatusRiwayat" onchange="filterTabelRiwayat()"
+              class="text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-700 py-2 px-3 rounded-xl focus:ring-2 focus:ring-orange-400">
+              <option value="Semua">Semua Status</option>
+              <option value="Hadir">Hadir Saja</option>
+              <option value="Izin">Izin / Sakit</option>
+              <option value="Alpa">Alpa Saja</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabel Responsif Desktop & Tablet -->
+        <div class="overflow-x-auto custom-scroll border border-slate-100 rounded-2xl">
+          <table class="w-full text-left border-collapse text-xs md:text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-100">
+                <th class="p-3.5">ID / Waktu</th>
+                <th class="p-3.5">Nama & NIS</th>
+                <th class="p-3.5">Kelas</th>
+                <th class="p-3.5">Sesi & Status</th>
+                <th class="p-3.5">Foto Bukti (Drive)</th>
+                <th class="p-3.5">Lokasi GPS</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyRiwayat" class="divide-y divide-slate-100">
+              <!-- Render Dinamis JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- KONTEN TAB 4: EKSPOR LAPORAN REKAPITULASI (EXCEL / CSV) -->
+    <!-- ========================================================================= -->
+    <section id="viewEkspor" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 md:p-8 card-elevated border border-slate-100 max-w-2xl mx-auto">
+
+        <div class="text-center mb-6">
+          <div
+            class="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+              </path>
+            </svg>
+          </div>
+          <h2 class="text-2xl font-extrabold text-slate-900">Ekspor Laporan Rekapitulasi</h2>
+          <p class="text-xs md:text-sm text-slate-500 mt-1">Unduh data absensi lengkap dalam format CSV yang kompatibel
+            langsung dengan Microsoft Excel & Google Sheets.</p>
+        </div>
+
+        <!-- Card Filter Ekspor -->
+        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 space-y-4 mb-6">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Rombongan Belajar (Kelas)</label>
+            <select id="selectEksporKelas"
+              class="w-full text-xs md:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 font-semibold shadow-sm">
+              <option value="Semua">Semua Kelas Terdaftar</option>
+              <option value="X RPL A">X RPL A</option>
+              <option value="X RPL B">X RPL B</option>
+              <option value="X RPL C">X RPL C</option>
+              <option value="X RPL D">X RPL D</option>
+            </select>
+          </div>
+
+          <!-- Periode Bulan Kustom (Tanpa Datepicker Bawaan Google) -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Periode Bulan Laporan</label>
+            <div class="grid grid-cols-2 gap-3">
+              <select id="selectEksporBulan"
+                class="text-xs md:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 font-semibold shadow-sm">
+                <option value="01">Januari</option>
+                <option value="02">Februari</option>
+                <option value="03">Maret</option>
+                <option value="04">April</option>
+                <option value="05">Mei</option>
+                <option value="06">Juni</option>
+                <option value="07">Juli</option>
+                <option value="08">Agustus</option>
+                <option value="09">September</option>
+                <option value="10">Oktober</option>
+                <option value="11" selected>November</option>
+                <option value="12">Desember</option>
+              </select>
+
+              <select id="selectEksporTahun"
+                class="text-xs md:text-sm bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-400 font-semibold shadow-sm">
+                <option value="2026" selected>2026</option>
+                <option value="2025">2025</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" onclick="unduhLaporanCSV()" id="btnUnduhLaporan"
+          class="w-full py-4 bg-indigo-600 text-white rounded-2xl text-xs md:text-sm font-bold shadow-lg shadow-indigo-600/25 hover:bg-indigo-700 active:scale-95 transition flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          </svg>
+          Unduh File Rekap (.CSV / Excel)
+        </button>
+
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL PENGATURAN KONEKSI API GOOGLE APPS SCRIPT (GITHUB PAGES EDITION)    -->
+  <!-- ========================================================================= -->
+  <div id="modalApiConfig"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 relative shadow-2xl border border-slate-100">
+      <button type="button" onclick="tutupModalApiConfig()"
+        class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1">
+            </path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-slate-900">Koneksi API Google Apps Script</h3>
+          <p class="text-xs text-slate-500">Jembatan GitHub Pages ke Google Sheets & Google Drive</p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">URL Web App Google Apps Script (`/exec`)</label>
+          <input type="url" id="inputGasApiUrl" placeholder="https://script.google.com/macros/s/.../exec"
+            class="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-orange-400 font-mono text-slate-700">
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 text-[11px] text-slate-600 space-y-1">
+          <p class="font-bold text-slate-800">Checklist Agar Foto Masuk ke Google Drive:</p>
+          <p>1. Tempelkan kode <b>code.gs</b> terbaru di editor Google Apps Script.</p>
+          <p>2. Klik <b>Deploy &rarr; Kelola deployment &rarr; Edit (Ikon Pensil) &rarr; Versi Baru &rarr; Deploy</b>.</p>
+          <p>3. Pastikan <i>Siapa yang memiliki akses</i> disetel ke <b>Siapa saja (Anyone)</b>.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
+          <button type="button" onclick="resetDefaultApiUrl()"
+            class="text-xs font-bold text-slate-500 hover:text-slate-800 underline">
+            Gunakan URL Default
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button type="button" id="btnTesKoneksiApi" onclick="tesKoneksiApi()"
+              class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+              Tes Koneksi
+            </button>
+            <button type="button" onclick="simpanKonfigurasiApi()"
+              class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-md shadow-orange-500/20 transition">
+              Simpan & Muat Data
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL KALENDER KUSTOM (ANTI-DATEPICKER BAWAAN GOOGLE CHROME) -->
+  <!-- ========================================================================= -->
+  <div id="modalKalender"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center relative shadow-2xl border border-slate-100">
+
+      <!-- Header Kalender Kustom -->
+      <div class="flex items-center justify-between mb-4">
+        <button type="button" onclick="geserBulanKalender(-1)"
+          class="p-2 rounded-xl hover:bg-slate-100 text-slate-600 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+
+        <div>
+          <h4 class="font-extrabold text-slate-800 text-sm md:text-base" id="modalKalenderJudul">November 2026</h4>
+          <span class="text-[10px] text-slate-400 font-semibold">Pilih Tanggal Presensi</span>
+        </div>
+
+        <button type="button" onclick="geserBulanKalender(1)"
+          class="p-2 rounded-xl hover:bg-slate-100 text-slate-600 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Nama Hari -->
+      <div class="grid grid-cols-7 gap-1 text-[11px] font-bold text-slate-400 mb-2">
+        <span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>
+      </div>
+
+      <!-- Grid Angka Tanggal -->
+      <div class="grid grid-cols-7 gap-1.5" id="gridAngkaKalender">
+        <!-- Render Otomatis JS -->
+      </div>
+
+      <!-- Footer Modal -->
+      <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+        <button type="button" onclick="pilihTanggalHariIni()"
+          class="text-xs font-bold text-orange-600 hover:underline">Hari
+          Ini</button>
+        <button type="button" onclick="tutupModalKalender()"
+          class="text-xs font-bold bg-slate-100 text-slate-700 px-4 py-2 rounded-xl hover:bg-slate-200 transition">Tutup</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL PREVIEW FOTO POPUP (GOOGLE DRIVE VIEWER) -->
+  <!-- ========================================================================= -->
+  <div id="modalFoto"
+    class="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 text-center relative shadow-2xl">
+      <button type="button" onclick="tutupModalFoto()"
+        class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <h3 class="text-base font-bold text-slate-900 mb-1" id="modalFotoNama">Foto Presensi Siswa</h3>
+      <p class="text-xs text-slate-500 mb-4" id="modalFotoInfo">X RPL A • Masuk</p>
+
+      <div class="rounded-2xl overflow-hidden bg-slate-100 aspect-square mb-4 border border-slate-200 flex items-center justify-center">
+        <img id="modalFotoSrc" src="" class="w-full h-full object-cover" alt="Foto Siswa">
+      </div>
+
+      <a id="modalFotoLinkDrive" href="#" target="_blank" rel="noopener noreferrer"
+        class="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 hover:underline">
+        Buka File Asli di Google Drive &nearr;
+      </a>
+    </div>
+  </div>
+
+  <!-- Toast Notification Kustom Anti-Alert -->
+  <div id="toastNotification"
+    class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none max-w-sm">
+    <div id="toastBox"
+      class="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs md:text-sm font-medium border border-slate-800">
+      <span id="toastIcon"></span>
+      <span id="toastMessage">Pesan notifikasi</span>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT LOGIC: GITHUB PAGES REST API & AUTO-START CAMERA               -->
+  <!-- ========================================================================= -->
+  <script>
+    // URL Resmi Web App Google Apps Script (Default Pre-Configured)
+    const DEFAULT_GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxNRUypBBRYzJqpwLpI73widV5ffkaZ-49xoYcIiKm3mgGBf4BPtM1UcJEI4xQd32SCEw/exec';
+    const STORAGE_KEY_GAS_URL = 'ABSENSI_SISWA_GAS_API_URL';
+
+    // State Aplikasi (Client-Side In-Memory Cache)
+    const APP_STATE = {
+      activeTab: 'dashboard',
+      selectedDate: '',
+      sesi: 'Masuk',
+      facingMode: 'user', // 'user' (depan) atau 'environment' (belakang)
+      videoStream: null,
+      capturedBase64: '',
+      currentGPS: '',
+      masterData: { kelas: [], siswa: [] },
+      dashboardCacheByDate: {},
+      dashboardData: null,
+      selectedClassDetail: null,
+      kalenderViewDate: new Date(),
+      isSubmitting: false,
+      apiConnected: false
+    };
+
+    // Fallback Data Awal (Digunakan hanya sebelum server merespons atau saat offline)
+    const FALLBACK_MASTER = {
+      kelas: [
+        { id: 'KLS-001', nama: 'X RPL A', mapel: 'Basis Data', wali: "Al-Mu'allimah", totalSiswa: 36 },
+        { id: 'KLS-002', nama: 'X RPL B', mapel: 'Pemrograman Web', wali: 'Budi Santoso, S.Kom', totalSiswa: 35 },
+        { id: 'KLS-003', nama: 'X RPL C', mapel: 'Rekayasa Perangkat Lunak', wali: 'Dewi Rahma, M.Kom', totalSiswa: 36 },
+        { id: 'KLS-004', nama: 'X RPL D', mapel: 'Basis Data', wali: 'Ahmad Hidayat, S.Pd', totalSiswa: 34 }
+      ],
+      siswa: [
+        { id: 'SIS-001', nis: '20261001', nama: 'Ahmad Fauzi', kelas: 'X RPL A', jk: 'Laki-laki', kontak: '081234567001' },
+        { id: 'SIS-002', nis: '20261002', nama: 'Annisa Putri', kelas: 'X RPL A', jk: 'Perempuan', kontak: '081234567002' },
+        { id: 'SIS-003', nis: '20261003', nama: 'Bima Arya', kelas: 'X RPL A', jk: 'Laki-laki', kontak: '081234567003' },
+        { id: 'SIS-004', nis: '20261004', nama: 'Citra Kirana', kelas: 'X RPL A', jk: 'Perempuan', kontak: '081234567004' },
+        { id: 'SIS-005', nis: '20261005', nama: 'Dedi Pratama', kelas: 'X RPL B', jk: 'Laki-laki', kontak: '081234567005' },
+        { id: 'SIS-006', nis: '20261006', nama: 'Eka Saputri', kelas: 'X RPL B', jk: 'Perempuan', kontak: '081234567006' },
+        { id: 'SIS-007', nis: '20261007', nama: 'Fajar Ramadhan', kelas: 'X RPL C', jk: 'Laki-laki', kontak: '081234567007' },
+        { id: 'SIS-008', nis: '20261008', nama: 'Gita Gutawa', kelas: 'X RPL C', jk: 'Perempuan', kontak: '081234567008' },
+        { id: 'SIS-009', nis: '20261009', nama: 'Hendra Wijaya', kelas: 'X RPL D', jk: 'Laki-laki', kontak: '081234567009' },
+        { id: 'SIS-010', nis: '20261010', nama: 'Indah Permata', kelas: 'X RPL D', jk: 'Perempuan', kontak: '081234567010' }
+      ]
+    };
+
+    const FALLBACK_DASHBOARD = {
+      tanggalTarget: '',
+      statistik: { hadir: 0, izin: 0, alpa: 0, totalSiswa: 141 },
+      kelasSummary: [
+        { id: 'KLS-001', nama: 'X RPL A', mapel: 'Basis Data', wali: "Al-Mu'allimah", totalSiswa: 36, hadirHariIni: 0, izinHariIni: 0, alpaHariIni: 0 },
+        { id: 'KLS-002', nama: 'X RPL B', mapel: 'Pemrograman Web', wali: 'Budi Santoso, S.Kom', totalSiswa: 35, hadirHariIni: 0, izinHariIni: 0, alpaHariIni: 0 },
+        { id: 'KLS-003', nama: 'X RPL C', mapel: 'Rekayasa Perangkat Lunak', wali: 'Dewi Rahma, M.Kom', totalSiswa: 36, hadirHariIni: 0, izinHariIni: 0, alpaHariIni: 0 },
+        { id: 'KLS-004', nama: 'X RPL D', mapel: 'Basis Data', wali: 'Ahmad Hidayat, S.Pd', totalSiswa: 34, hadirHariIni: 0, izinHariIni: 0, alpaHariIni: 0 }
+      ],
+      riwayat: []
+    };
+
+    // Inisialisasi Saat Halaman Siap
+    window.addEventListener('DOMContentLoaded', () => {
+      initTanggalHariIni();
+      renderKalenderStrip();
+      muatMasterData();
+      muatDataDashboard(true);
+      ambilKoordinatGPS();
+    });
+
+    // =========================================================================
+    // ENGINE KOMUNIKASI REST API GOOGLE APPS SCRIPT (BEBAS CORS PREFLIGHT)
+    // =========================================================================
+    function getGasApiUrl() {
+      const saved = localStorage.getItem(STORAGE_KEY_GAS_URL);
+      return (saved && saved.trim()) ? saved.trim() : DEFAULT_GAS_API_URL;
+    }
+
+    function setIndikatorApi(status, labelText) {
+      const badge = document.getElementById('badgeApiConnection');
+      const dot = document.getElementById('dotApiConnection');
+      const text = document.getElementById('textApiConnection');
+
+      if (!badge || !dot || !text) return;
+      text.innerText = labelText;
+
+      if (status === 'connected') {
+        APP_STATE.apiConnected = true;
+        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer';
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+      } else if (status === 'loading') {
+        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition cursor-pointer';
+        dot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
+      } else {
+        APP_STATE.apiConnected = false;
+        badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition cursor-pointer';
+        dot.className = 'w-2 h-2 rounded-full bg-red-500';
+      }
+    }
+
+    async function callGasApi(action, payload) {
+      const dataPayload = payload || {};
+
+      // 1. Jika dibuka langsung di dalam iframe Google Apps Script, dukung google.script.run
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        return new Promise((resolve, reject) => {
+          const runner = google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject);
+
+          if (action === 'getMasterData') runner.getMasterData();
+          else if (action === 'getDashboardData') runner.getDashboardData(dataPayload.filterTanggal);
+          else if (action === 'simpanPresensi') runner.simpanPresensi(dataPayload);
+          else if (action === 'eksporDataAbsensi') runner.eksporDataAbsensi(dataPayload.filterKelas, dataPayload.filterBulan);
+          else resolve({ success: true, message: 'Terhubung via google.script.run' });
+        });
+      }
+
+      // 2. Jalur Utama GitHub Pages -> Fetch HTTP POST ke URL Web App Google Apps Script
+      const apiUrl = getGasApiUrl();
+      if (!apiUrl) {
+        throw new Error('URL API Google Apps Script belum diisi.');
+      }
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({
+          action: action,
+          payload: dataPayload
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('HTTP Error ' + response.status);
+      }
+
+      const rawText = await response.text();
+      try {
+        return JSON.parse(rawText);
+      } catch (errParse) {
+        throw new Error('Server belum mengembalikan JSON. Pastikan code.gs terbaru sudah dipasang di Google Apps Script dan di-Deploy ulang sebagai "Versi Baru".');
+      }
+    }
+
+    function sinkronisasiSemuaData() {
+      showToast('Menyinkronkan data dari Google Sheets...', 'info');
+      muatMasterData();
+      muatDataDashboard(true);
+    }
+
+    // =========================================================================
+    // MODAL KONFIGURASI LINK API GOOGLE APPS SCRIPT
+    // =========================================================================
+    function bukaModalApiConfig() {
+      document.getElementById('inputGasApiUrl').value = getGasApiUrl();
+      document.getElementById('modalApiConfig').classList.remove('hidden');
+    }
+
+    function tutupModalApiConfig() {
+      document.getElementById('modalApiConfig').classList.add('hidden');
+    }
+
+    function resetDefaultApiUrl() {
+      localStorage.removeItem(STORAGE_KEY_GAS_URL);
+      document.getElementById('inputGasApiUrl').value = DEFAULT_GAS_API_URL;
+      showToast('URL API dikembalikan ke default.', 'info');
+    }
+
+    function simpanKonfigurasiApi() {
+      const val = document.getElementById('inputGasApiUrl').value.trim();
+      if (!val || val.indexOf('https://script.google.com/') !== 0) {
+        showToast('Masukkan URL Web App Google Apps Script yang valid (https://script.google.com/.../exec)', 'error');
+        return;
+      }
+      localStorage.setItem(STORAGE_KEY_GAS_URL, val);
+      tutupModalApiConfig();
+      sinkronisasiSemuaData();
+    }
+
+    async function tesKoneksiApi() {
+      const btn = document.getElementById('btnTesKoneksiApi');
+      const val = document.getElementById('inputGasApiUrl').value.trim();
+      if (val) {
+        localStorage.setItem(STORAGE_KEY_GAS_URL, val);
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Mengetes...';
+      setIndikatorApi('loading', 'Menghubungkan...');
+
+      try {
+        const res = await callGasApi('ping', {});
+        btn.disabled = false;
+        btn.innerText = 'Tes Koneksi';
+
+        if (res && res.success) {
+          setIndikatorApi('connected', 'API GAS Terhubung');
+          showToast(res.message || 'Koneksi API Google Apps Script sukses!', 'success');
+        } else {
+          setIndikatorApi('error', 'Respons API Gagal');
+          showToast(res ? res.message : 'Koneksi gagal.', 'error');
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerText = 'Tes Koneksi';
+        setIndikatorApi('error', 'Perlu Update Deploy GAS');
+        showToast(err.message, 'error');
+      }
+    }
+
+    // =========================================================================
+    // FORMAT TANGGAL HEADER & KALENDER STRIP
+    // =========================================================================
+    function initTanggalHariIni() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const formatted = now.toLocaleDateString('id-ID', options);
+      document.getElementById('textTanggalHeader').innerText = formatted;
+
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      APP_STATE.selectedDate = yyyy + '-' + mm + '-' + dd;
+      APP_STATE.kalenderViewDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    function renderKalenderStrip() {
+      const container = document.getElementById('containerStripTanggal');
+      container.innerHTML = '';
+
+      const parts = APP_STATE.selectedDate.split('-');
+      const selDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+      for (let i = -3; i <= 3; i++) {
+        const d = new Date(selDate);
+        d.setDate(selDate.getDate() + i);
+
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const tglStr = yyyy + '-' + mm + '-' + dd;
+
+        const namaHari = days[d.getDay()];
+        const tanggalNum = d.getDate();
+        const isSelected = (tglStr === APP_STATE.selectedDate);
+
+        const pill = document.createElement('button');
+        pill.type = 'button';
+        pill.className = 'flex flex-col items-center justify-center min-w-[62px] py-2.5 px-2 rounded-2xl transition ' +
+          (isSelected
+            ? 'bg-red-500 text-white shadow-md shadow-red-500/25 scale-105 font-bold'
+            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-100');
+
+        const spanHari = document.createElement('span');
+        spanHari.className = 'text-[10px] uppercase font-semibold ' + (isSelected ? 'text-white/80' : 'text-slate-400');
+        spanHari.innerText = namaHari;
+
+        const spanTgl = document.createElement('span');
+        spanTgl.className = 'text-base font-extrabold mt-0.5';
+        spanTgl.innerText = String(tanggalNum);
+
+        pill.appendChild(spanHari);
+        pill.appendChild(spanTgl);
+        pill.addEventListener('click', function () {
+          pilihTanggal(tglStr);
+        });
+        container.appendChild(pill);
+      }
+
+      const bulanNama = selDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+      document.getElementById('btnLabelBulan').innerText = bulanNama;
+      document.getElementById('labelRentangMinggu').innerText = 'Pekan: ' + bulanNama;
+      document.getElementById('badgeActiveDatePill').innerText = APP_STATE.selectedDate;
+    }
+
+    function pilihTanggal(tglStr) {
+      APP_STATE.selectedDate = tglStr;
+      renderKalenderStrip();
+      muatDataDashboard(false);
+    }
+
+    // =========================================================================
+    // MODAL KALENDER KUSTOM
+    // =========================================================================
+    function bukaModalKalender() {
+      document.getElementById('modalKalender').classList.remove('hidden');
+      renderModalKalender();
+    }
+
+    function tutupModalKalender() {
+      document.getElementById('modalKalender').classList.add('hidden');
+    }
+
+    function geserBulanKalender(offset) {
+      APP_STATE.kalenderViewDate.setMonth(APP_STATE.kalenderViewDate.getMonth() + offset);
+      renderModalKalender();
+    }
+
+    function pilihTanggalHariIni() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      pilihTanggal(yyyy + '-' + mm + '-' + dd);
+      tutupModalKalender();
+    }
+
+    function renderModalKalender() {
+      const viewDate = APP_STATE.kalenderViewDate;
+      const year = viewDate.getFullYear();
+      const month = viewDate.getMonth();
+
+      const namaBulanTahun = viewDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+      document.getElementById('modalKalenderJudul').innerText = namaBulanTahun;
+
+      const grid = document.getElementById('gridAngkaKalender');
+      grid.innerHTML = '';
+
+      const firstDayIndex = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+
+      for (let e = 0; e < firstDayIndex; e++) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'p-2';
+        grid.appendChild(emptyDiv);
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const mm = String(month + 1).padStart(2, '0');
+        const dd = String(day).padStart(2, '0');
+        const tglStr = year + '-' + mm + '-' + dd;
+        const isSelected = (tglStr === APP_STATE.selectedDate);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'p-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center ' +
+          (isSelected
+            ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30 font-extrabold'
+            : 'hover:bg-slate-100 text-slate-700');
+        btn.innerText = String(day);
+        btn.addEventListener('click', function () {
+          pilihTanggal(tglStr);
+          tutupModalKalender();
+        });
+        grid.appendChild(btn);
+      }
+    }
+
+    // =========================================================================
+    // NAVIGASI TAB UTAMA & AUTO-START KAMERA
+    // =========================================================================
+    function gantiTab(target) {
+      APP_STATE.activeTab = target;
+
+      document.getElementById('viewDashboard').classList.add('hidden');
+      document.getElementById('viewDetailKelas').classList.add('hidden');
+      document.getElementById('viewKamera').classList.add('hidden');
+      document.getElementById('viewRiwayat').classList.add('hidden');
+      document.getElementById('viewEkspor').classList.add('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+
+      if (target === 'dashboard') {
+        document.getElementById('viewDashboard').classList.remove('hidden');
+        document.getElementById('tabBtnDashboard').classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+        hentikanKamera();
+      } else if (target === 'detailKelas') {
+        document.getElementById('viewDetailKelas').classList.remove('hidden');
+        document.getElementById('tabBtnDashboard').classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+        hentikanKamera();
+      } else if (target === 'kamera') {
+        document.getElementById('viewKamera').classList.remove('hidden');
+        document.getElementById('tabBtnKamera').classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+        mulaiKamera();
+      } else if (target === 'riwayat') {
+        document.getElementById('viewRiwayat').classList.remove('hidden');
+        document.getElementById('tabBtnRiwayat').classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+        hentikanKamera();
+        filterTabelRiwayat();
+      } else if (target === 'ekspor') {
+        document.getElementById('viewEkspor').classList.remove('hidden');
+        document.getElementById('tabBtnEkspor').classList.add('bg-white', 'text-slate-900', 'shadow-sm');
+        hentikanKamera();
+      }
+    }
+
+    // =========================================================================
+    // SUB-TAB: DETAIL DATA SISWA PER KELAS (CARD KLIK)
+    // =========================================================================
+    function bukaDetailKelas(namaKelas) {
+      APP_STATE.selectedClassDetail = namaKelas;
+      gantiTab('detailKelas');
+
+      document.getElementById('detailBreadcrumbKelas').innerText = namaKelas;
+      document.getElementById('detailNamaKelas').innerText = namaKelas;
+
+      const listKelas = (APP_STATE.dashboardData && APP_STATE.dashboardData.kelasSummary) ? APP_STATE.dashboardData.kelasSummary : [];
+      const klsInfo = listKelas.find(k => k.nama === namaKelas) || {
+        mapel: 'Pelajaran Umum',
+        wali: '-',
+        totalSiswa: 0,
+        hadirHariIni: 0,
+        izinHariIni: 0,
+        alpaHariIni: 0
+      };
+
+      document.getElementById('detailMapelKelas').innerText = klsInfo.mapel || 'Pelajaran Umum';
+      document.getElementById('detailWaliKelas').innerText = klsInfo.wali || '-';
+      document.getElementById('detailTotalMurid').innerText = klsInfo.totalSiswa || 0;
+      document.getElementById('detailHadirMurid').innerText = klsInfo.hadirHariIni || 0;
+      document.getElementById('detailIzinMurid').innerText = klsInfo.izinHariIni || 0;
+      document.getElementById('detailAlpaMurid').innerText = klsInfo.alpaHariIni || 0;
+
+      renderTabelSiswaKelas(namaKelas);
+    }
+
+    function renderTabelSiswaKelas(namaKelas) {
+      const tbody = document.getElementById('tbodyDetailSiswa');
+      tbody.innerHTML = '';
+
+      const siswaList = (APP_STATE.masterData && APP_STATE.masterData.siswa ? APP_STATE.masterData.siswa : []).filter(s => s.kelas === namaKelas);
+      const riwayatList = (APP_STATE.dashboardData && APP_STATE.dashboardData.riwayat ? APP_STATE.dashboardData.riwayat : []).filter(r => r.kelas === namaKelas);
+
+      if (siswaList.length === 0) {
+        const trEmpty = document.createElement('tr');
+        const tdEmpty = document.createElement('td');
+        tdEmpty.colSpan = 5;
+        tdEmpty.className = 'text-center py-6 text-slate-400 text-xs';
+        tdEmpty.innerText = 'Belum ada data siswa terdaftar di kelas ' + namaKelas + '.';
+        trEmpty.appendChild(tdEmpty);
+        tbody.appendChild(trEmpty);
+        return;
+      }
+
+      siswaList.forEach(siswa => {
+        const logAbsen = riwayatList.find(r => String(r.nis) === String(siswa.nis));
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+
+        // Kolom NIS
+        const tdNis = document.createElement('td');
+        tdNis.className = 'p-3.5 font-mono text-slate-500 font-semibold';
+        tdNis.innerText = siswa.nis;
+
+        // Kolom Nama & Kontak
+        const tdNama = document.createElement('td');
+        tdNama.className = 'p-3.5';
+        const spanNama = document.createElement('span');
+        spanNama.className = 'font-extrabold text-slate-800';
+        spanNama.innerText = siswa.nama;
+        const divKontak = document.createElement('div');
+        divKontak.className = 'text-[11px] text-slate-400';
+        divKontak.innerText = siswa.kontak || '-';
+        tdNama.appendChild(spanNama);
+        tdNama.appendChild(divKontak);
+
+        // Kolom JK
+        const tdJk = document.createElement('td');
+        tdJk.className = 'p-3.5 font-medium text-slate-600';
+        tdJk.innerText = siswa.jk || 'Laki-laki';
+
+        // Kolom Status
+        const tdStatus = document.createElement('td');
+        tdStatus.className = 'p-3.5';
+        const badge = document.createElement('span');
+        if (!logAbsen) {
+          badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500';
+          badge.innerText = 'Belum Absen';
+        } else {
+          const stLower = String(logAbsen.status || '').toLowerCase();
+          if (stLower === 'hadir') {
+            badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700';
+            badge.innerText = 'Hadir (' + (logAbsen.waktu || '-') + ')';
+          } else if (stLower === 'izin' || stLower === 'sakit') {
+            badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700';
+            badge.innerText = logAbsen.status;
+          } else {
+            badge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-100 text-red-700';
+            badge.innerText = 'Alpa';
+          }
+        }
+        tdStatus.appendChild(badge);
+
+        // Kolom Aksi
+        const tdAksi = document.createElement('td');
+        tdAksi.className = 'p-3.5 text-center';
+        const btnAbsen = document.createElement('button');
+        btnAbsen.type = 'button';
+        btnAbsen.className = 'px-3 py-1.5 bg-orange-50 text-orange-600 border border-orange-200 rounded-xl text-xs font-bold hover:bg-orange-500 hover:text-white transition';
+        btnAbsen.innerText = 'Presensikan \u2192';
+        btnAbsen.addEventListener('click', function () {
+          pilihSiswaDanAbsenLangsung(siswa.kelas, siswa.nis);
+        });
+        tdAksi.appendChild(btnAbsen);
+
+        tr.appendChild(tdNis);
+        tr.appendChild(tdNama);
+        tr.appendChild(tdJk);
+        tr.appendChild(tdStatus);
+        tr.appendChild(tdAksi);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function pilihSiswaDanAbsenLangsung(kelas, nis) {
+      gantiTab('kamera');
+      const selKelas = document.getElementById('selectKelasForm');
+      selKelas.value = kelas;
+      filterSiswaByKelas(kelas);
+
+      const selSiswa = document.getElementById('selectSiswaForm');
+      selSiswa.value = nis;
+    }
+
+    // =========================================================================
+    // FITUR KAMERA LANGSUNG JALAN (TOP-LEVEL HTTPS GITHUB PAGES)
+    // =========================================================================
+    async function mulaiKamera() {
+      const video = document.getElementById('videoElement');
+      const boxIzin = document.getElementById('boxIzinKamera');
+      const badgeStatus = document.getElementById('badgeKameraStatus');
+
+      ulangiFoto();
+      boxIzin.classList.add('hidden');
+      badgeStatus.classList.remove('hidden');
+      badgeStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span> Menyalakan Kamera...';
+
+      // Efek cermin hanya untuk kamera depan
+      if (APP_STATE.facingMode === 'user') {
+        video.classList.add('mirror-video');
+      } else {
+        video.classList.remove('mirror-video');
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        boxIzin.classList.remove('hidden');
+        badgeStatus.classList.add('hidden');
+        showToast('Browser tidak mendukung webcam langsung. Gunakan tombol Kamera HP.', 'error');
+        return;
+      }
+
+      try {
+        hentikanKamera();
+
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: APP_STATE.facingMode,
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            },
+            audio: false
+          });
+        } catch (errConstraint) {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          });
+        }
+
+        APP_STATE.videoStream = stream;
+        video.srcObject = stream;
+        await video.play();
+
+        boxIzin.classList.add('hidden');
+        badgeStatus.classList.remove('hidden');
+        badgeStatus.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Live Webcam Aktif';
+      } catch (err) {
+        console.warn('Kendala akses kamera:', err);
+        boxIzin.classList.remove('hidden');
+        badgeStatus.classList.add('hidden');
+        showToast('Silakan klik "Allow / Izinkan" kamera di browser Anda.', 'info');
+      }
+    }
+
+    function hentikanKamera() {
+      if (APP_STATE.videoStream) {
+        APP_STATE.videoStream.getTracks().forEach(track => track.stop());
+        APP_STATE.videoStream = null;
+      }
+    }
+
+    function toggleSwitchKamera() {
+      APP_STATE.facingMode = (APP_STATE.facingMode === 'user') ? 'environment' : 'user';
+      mulaiKamera();
+    }
+
+    // Ambil Snapshot dari Live Video & Kompresi Optimal untuk Upload Cepat ke Google Drive
+    function tangkapFotoDariVideo() {
+      const video = document.getElementById('videoElement');
+      const canvas = document.getElementById('canvasCapture');
+      const shutter = document.getElementById('shutterEffect');
+
+      if (!APP_STATE.videoStream || !video.videoWidth) {
+        showToast('Kamera belum menyala. Menyalakan kamera...', 'info');
+        mulaiKamera();
+        return false;
+      }
+
+      // Animasi Shutter Flash
+      shutter.classList.add('shutter-active');
+      setTimeout(() => shutter.classList.remove('shutter-active'), 350);
+
+      // Resize proporsional maks lebar 800px agar upload ke Google Drive kilat
+      const srcWidth = video.videoWidth || 640;
+      const srcHeight = video.videoHeight || 480;
+      const maxDim = 800;
+      let targetWidth = srcWidth;
+      let targetHeight = srcHeight;
+
+      if (srcWidth > maxDim) {
+        targetWidth = maxDim;
+        targetHeight = Math.round((srcHeight * maxDim) / srcWidth);
+      }
+
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const ctx = canvas.getContext('2d');
+
+      if (APP_STATE.facingMode === 'user') {
+        ctx.save();
+        ctx.translate(targetWidth, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+        ctx.restore();
+      } else {
+        ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+      }
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      APP_STATE.capturedBase64 = dataUrl;
+      tampilkanPreviewFoto(dataUrl);
+      return true;
+    }
+
+    function tampilkanPreviewFoto(dataUrl) {
+      const imgPreview = document.getElementById('imagePreview');
+      const btnUlangi = document.getElementById('btnUlangiFoto');
+      const framePanduan = document.getElementById('framePanduanWajah');
+
+      imgPreview.src = dataUrl;
+      imgPreview.classList.remove('hidden');
+      btnUlangi.classList.remove('hidden');
+      framePanduan.classList.add('hidden');
+    }
+
+    function ulangiFoto() {
+      APP_STATE.capturedBase64 = '';
+      document.getElementById('imagePreview').classList.add('hidden');
+      document.getElementById('btnUlangiFoto').classList.add('hidden');
+      document.getElementById('framePanduanWajah').classList.remove('hidden');
+    }
+
+    // Penangan Foto dari Kamera Bawaan HP + Kompresi Canvas Otomatis
+    function handleFotoKameraHP(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        const imgTemp = new Image();
+        imgTemp.onload = function () {
+          const canvas = document.getElementById('canvasCapture');
+          const maxDim = 800;
+          let w = imgTemp.width;
+          let h = imgTemp.height;
+          if (w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(imgTemp, 0, 0, w, h);
+
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+          APP_STATE.capturedBase64 = compressedDataUrl;
+          tampilkanPreviewFoto(compressedDataUrl);
+
+          const badge = document.getElementById('badgeKameraStatus');
+          badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400"></span> Foto Kamera HP Siap';
+          badge.classList.remove('hidden');
+          document.getElementById('boxIzinKamera').classList.add('hidden');
+          showToast('Foto selfie berhasil diambil!', 'success');
+        };
+        imgTemp.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function setSesi(sesi) {
+      APP_STATE.sesi = sesi;
+      const btnMasuk = document.getElementById('btnSesiMasuk');
+      const btnPulang = document.getElementById('btnSesiPulang');
+
+      if (sesi === 'Masuk') {
+        btnMasuk.className = 'py-2 text-xs font-extrabold rounded-xl bg-orange-500 text-white transition shadow-sm';
+        btnPulang.className = 'py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition';
+      } else {
+        btnPulang.className = 'py-2 text-xs font-extrabold rounded-xl bg-orange-500 text-white transition shadow-sm';
+        btnMasuk.className = 'py-2 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-900 transition';
+      }
+    }
+
+    function ambilKoordinatGPS() {
+      const gpsLabel = document.getElementById('textKoordinatGPS');
+      if (!navigator.geolocation) {
+        gpsLabel.innerText = 'GPS tidak didukung';
+        return;
+      }
+
+      gpsLabel.innerText = 'Mencari sinyal GPS...';
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude.toFixed(6);
+          const lng = pos.coords.longitude.toFixed(6);
+          APP_STATE.currentGPS = lat + ', ' + lng;
+          gpsLabel.innerText = 'GPS: ' + lat + ', ' + lng;
+        },
+        () => {
+          APP_STATE.currentGPS = '';
+          gpsLabel.innerText = 'GPS: Standby / Default';
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    // =========================================================================
+    // EKSEKUSI SIMPAN PRESENSI & UPLOAD FOTO KE GOOGLE DRIVE VIA API GAS
+    // =========================================================================
+    async function eksekusiPresensi() {
+      if (APP_STATE.isSubmitting) return;
+
+      const selectKelas = document.getElementById('selectKelasForm');
+      const selectSiswa = document.getElementById('selectSiswaForm');
+      const selectStatus = document.getElementById('selectStatusForm');
+      const inputKet = document.getElementById('inputKeterangan');
+      const btnJepret = document.getElementById('btnJepretAbsen');
+
+      const kelas = String(selectKelas.value || '').trim();
+      const selectedOpt = selectSiswa.options[selectSiswa.selectedIndex];
+      const namaSiswa = selectedOpt ? String(selectedOpt.text || '').trim() : '';
+      const nis = String(selectSiswa.value || '').trim();
+      const status = String(selectStatus.value || 'Hadir').trim();
+      const keterangan = String(inputKet.value || '').trim();
+
+      if (!kelas) {
+        showToast('Silakan pilih kelas terlebih dahulu!', 'error');
+        return;
+      }
+      if (!nis || !namaSiswa || nis === '') {
+        showToast('Silakan pilih nama siswa!', 'error');
+        return;
+      }
+
+      // Otomatis jepret dari live video jika pengguna belum menekan Ambil Snapshot
+      if (!APP_STATE.capturedBase64) {
+        const berhasilJepret = tangkapFotoDariVideo();
+        if (!berhasilJepret || !APP_STATE.capturedBase64) {
+          showToast('Kamera belum siap. Pastikan kamera aktif atau gunakan tombol Kamera HP.', 'error');
+          return;
+        }
+      }
+
+      const payload = {
+        nis: nis,
+        namaSiswa: namaSiswa,
+        kelas: kelas,
+        sesi: String(APP_STATE.sesi),
+        status: status,
+        keterangan: keterangan,
+        koordinatGPS: String(APP_STATE.currentGPS || ''),
+        fotoBase64: APP_STATE.capturedBase64
+      };
+
+      APP_STATE.isSubmitting = true;
+      btnJepret.disabled = true;
+      btnJepret.innerHTML = '<span>Mengunggah Foto ke Google Drive & Menyimpan...</span>';
+
+      try {
+        const res = await callGasApi('simpanPresensi', payload);
+        APP_STATE.isSubmitting = false;
+        btnJepret.disabled = false;
+        btnJepret.innerHTML = '<span>Jepret & Simpan ke Google Drive</span>';
+
+        if (res && res.success) {
+          setIndikatorApi('connected', 'API GAS Terhubung');
+          showToast(res.message || 'Presensi & foto berhasil disimpan ke Google Drive!', 'success');
+          inputKet.value = '';
+          ulangiFoto();
+
+          // Invalidasi cache & muat ulang data terbaru dari server
+          delete APP_STATE.dashboardCacheByDate[APP_STATE.selectedDate];
+          await muatDataDashboard(true);
+          setTimeout(() => gantiTab('dashboard'), 900);
+        } else {
+          showToast(res ? res.message : 'Gagal menyimpan presensi.', 'error');
+        }
+      } catch (err) {
+        APP_STATE.isSubmitting = false;
+        btnJepret.disabled = false;
+        btnJepret.innerHTML = '<span>Jepret & Simpan ke Google Drive</span>';
+        setIndikatorApi('error', 'Gagal Kirim API');
+        showToast('Kesalahan Koneksi API: ' + err.message, 'error');
+      }
+    }
+
+    // =========================================================================
+    // MEMUAT DATA DASHBOARD & STATISTIK DARI API GOOGLE APPS SCRIPT
+    // =========================================================================
+    async function muatDataDashboard(forceRefresh) {
+      const targetDate = APP_STATE.selectedDate;
+
+      // Gunakan Client-Side In-Memory Cache jika tersedia & tidak dipaksa refresh
+      if (!forceRefresh && APP_STATE.dashboardCacheByDate[targetDate]) {
+        APP_STATE.dashboardData = APP_STATE.dashboardCacheByDate[targetDate];
+        renderDashboard(APP_STATE.dashboardData);
+        return;
+      }
+
+      setIndikatorApi('loading', 'Sinkronisasi...');
+
+      try {
+        const res = await callGasApi('getDashboardData', { filterTanggal: targetDate });
+        if (res && res.success && res.data) {
+          setIndikatorApi('connected', 'API GAS Terhubung');
+          APP_STATE.dashboardData = res.data;
+          APP_STATE.dashboardCacheByDate[targetDate] = res.data;
+          document.getElementById('labelStatusSinkron').innerText = 'Status: Tersambung ke Google Sheets & Drive';
+          renderDashboard(res.data);
+        } else {
+          throw new Error(res && res.message ? res.message : 'Gagal memuat data dashboard.');
+        }
+      } catch (err) {
+        console.warn('Info sinkronisasi dashboard:', err.message);
+        setIndikatorApi('error', 'Cek Deploy GAS');
+        document.getElementById('labelStatusSinkron').innerText = 'Mode Standby (Menunggu Update Deploy GAS)';
+        if (!APP_STATE.dashboardData) {
+          APP_STATE.dashboardData = FALLBACK_DASHBOARD;
+          renderDashboard(FALLBACK_DASHBOARD);
+        }
+      }
+    }
+
+    function renderDashboard(data) {
+      if (!data) return;
+
+      document.getElementById('statHadir').innerText = data.statistik.hadir || 0;
+      document.getElementById('statIzin').innerText = data.statistik.izin || 0;
+      document.getElementById('statAlpa').innerText = data.statistik.alpa || 0;
+      document.getElementById('statTotalSiswa').innerText = '/ ' + (data.statistik.totalSiswa || 0) + ' Total Siswa';
+
+      const containerKelas = document.getElementById('gridKartuKelas');
+      containerKelas.innerHTML = '';
+
+      const listKelas = data.kelasSummary || [];
+      listKelas.forEach(kls => {
+        const card = document.createElement('div');
+        card.className = 'bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col justify-between hover:border-orange-400 hover:shadow-lg transition cursor-pointer group';
+        card.addEventListener('click', function () {
+          bukaDetailKelas(kls.nama);
+        });
+
+        const topWrap = document.createElement('div');
+
+        const headerFlex = document.createElement('div');
+        headerFlex.className = 'flex items-center justify-between mb-2';
+
+        const h4Nama = document.createElement('h4');
+        h4Nama.className = 'font-extrabold text-sm md:text-base text-slate-800 group-hover:text-orange-600 transition';
+        h4Nama.innerText = kls.nama;
+
+        const badgeCount = document.createElement('span');
+        badgeCount.className = 'px-2.5 py-0.5 bg-blue-600 text-white rounded-md text-[11px] font-bold';
+        badgeCount.innerText = (kls.hadirHariIni || 0) + ' / ' + (kls.totalSiswa || 0);
+
+        headerFlex.appendChild(h4Nama);
+        headerFlex.appendChild(badgeCount);
+
+        const boxMapel = document.createElement('div');
+        boxMapel.className = 'p-2.5 bg-white rounded-xl border border-slate-100 mb-2';
+        const lblMapel = document.createElement('p');
+        lblMapel.className = 'text-[11px] text-slate-400 font-medium';
+        lblMapel.innerText = 'Mata Pelajaran';
+        const valMapel = document.createElement('p');
+        valMapel.className = 'text-xs font-bold text-slate-700';
+        valMapel.innerText = kls.mapel || 'Pelajaran Umum';
+        boxMapel.appendChild(lblMapel);
+        boxMapel.appendChild(valMapel);
+
+        const boxWali = document.createElement('div');
+        boxWali.className = 'p-2.5 bg-white rounded-xl border border-slate-100';
+        const lblWali = document.createElement('p');
+        lblWali.className = 'text-[11px] text-slate-400 font-medium';
+        lblWali.innerText = 'Wali Kelas / Guru';
+        const valWali = document.createElement('p');
+        valWali.className = 'text-xs font-bold text-slate-700';
+        valWali.innerText = kls.wali || '-';
+        boxWali.appendChild(lblWali);
+        boxWali.appendChild(valWali);
+
+        topWrap.appendChild(headerFlex);
+        topWrap.appendChild(boxMapel);
+        topWrap.appendChild(boxWali);
+
+        const footerFlex = document.createElement('div');
+        footerFlex.className = 'mt-4 pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs font-bold text-orange-600 group-hover:translate-x-1 transition duration-200';
+        const spanBuka = document.createElement('span');
+        spanBuka.innerText = 'Buka Data Murid';
+        const spanArrow = document.createElement('span');
+        spanArrow.innerText = '\u2192';
+        footerFlex.appendChild(spanBuka);
+        footerFlex.appendChild(spanArrow);
+
+        card.appendChild(topWrap);
+        card.appendChild(footerFlex);
+        containerKelas.appendChild(card);
+      });
+
+      renderTabelRiwayat(data.riwayat || []);
+    }
+
+    function renderTabelRiwayat(list) {
+      const tbody = document.getElementById('tbodyRiwayat');
+      tbody.innerHTML = '';
+
+      if (!list || list.length === 0) {
+        const trEmpty = document.createElement('tr');
+        const tdEmpty = document.createElement('td');
+        tdEmpty.colSpan = 6;
+        tdEmpty.className = 'text-center py-6 text-slate-400 text-xs';
+        tdEmpty.innerText = 'Belum ada riwayat absensi pada tanggal ini.';
+        trEmpty.appendChild(tdEmpty);
+        tbody.appendChild(trEmpty);
+        return;
+      }
+
+      list.forEach(item => {
+        const stLower = String(item.status || '').toLowerCase();
+        const badgeColor = stLower === 'hadir'
+          ? 'bg-emerald-100 text-emerald-700'
+          : (stLower === 'izin' || stLower === 'sakit' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700');
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+
+        // 1. Kolom ID & Waktu
+        const tdId = document.createElement('td');
+        tdId.className = 'p-3.5';
+        const spanId = document.createElement('span');
+        spanId.className = 'font-bold text-slate-800';
+        spanId.innerText = item.id || '-';
+        const divWaktu = document.createElement('div');
+        divWaktu.className = 'text-[11px] text-slate-400';
+        divWaktu.innerText = (item.waktu || '-') + ' WIB';
+        tdId.appendChild(spanId);
+        tdId.appendChild(divWaktu);
+
+        // 2. Kolom Nama & NIS
+        const tdNama = document.createElement('td');
+        tdNama.className = 'p-3.5';
+        const spanNama = document.createElement('span');
+        spanNama.className = 'font-bold text-slate-800';
+        spanNama.innerText = item.nama || '-';
+        const divNis = document.createElement('div');
+        divNis.className = 'text-[11px] text-slate-400';
+        divNis.innerText = 'NIS: ' + (item.nis || '-');
+        tdNama.appendChild(spanNama);
+        tdNama.appendChild(divNis);
+
+        // 3. Kolom Kelas
+        const tdKelas = document.createElement('td');
+        tdKelas.className = 'p-3.5 font-semibold text-slate-700';
+        tdKelas.innerText = item.kelas || '-';
+
+        // 4. Kolom Status & Sesi
+        const tdStatus = document.createElement('td');
+        tdStatus.className = 'p-3.5';
+        const spanBadge = document.createElement('span');
+        spanBadge.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold ' + badgeColor;
+        spanBadge.innerText = (item.status || 'Hadir') + ' (' + (item.sesi || 'Masuk') + ')';
+        tdStatus.appendChild(spanBadge);
+
+        // 5. Kolom Foto Bukti Google Drive
+        const tdFoto = document.createElement('td');
+        tdFoto.className = 'p-3.5';
+        if (item.fotoUrl && String(item.fotoUrl).trim() !== '') {
+          const btnFoto = document.createElement('button');
+          btnFoto.type = 'button';
+          btnFoto.className = 'text-xs font-bold text-blue-600 hover:underline flex items-center gap-1';
+          btnFoto.innerText = 'Lihat Foto Drive';
+          btnFoto.addEventListener('click', function () {
+            bukaModalFoto(item.fotoUrl, item.nama, (item.kelas || '') + ' • ' + (item.sesi || ''));
+          });
+          tdFoto.appendChild(btnFoto);
+        } else {
+          const spanNoFoto = document.createElement('span');
+          spanNoFoto.className = 'text-slate-400 text-xs';
+          spanNoFoto.innerText = 'Tanpa Foto';
+          tdFoto.appendChild(spanNoFoto);
+        }
+
+        // 6. Kolom GPS
+        const tdGps = document.createElement('td');
+        tdGps.className = 'p-3.5';
+        if (item.gps && String(item.gps).trim() !== '') {
+          const linkMap = document.createElement('a');
+          linkMap.href = 'https://maps.google.com/?q=' + encodeURIComponent(item.gps);
+          linkMap.target = '_blank';
+          linkMap.rel = 'noopener noreferrer';
+          linkMap.className = 'text-xs font-bold text-emerald-600 hover:underline';
+          linkMap.innerText = 'Buka Peta \u2197';
+          tdGps.appendChild(linkMap);
+        } else {
+          const spanNoGps = document.createElement('span');
+          spanNoGps.className = 'text-slate-400 text-xs';
+          spanNoGps.innerText = '-';
+          tdGps.appendChild(spanNoGps);
+        }
+
+        tr.appendChild(tdId);
+        tr.appendChild(tdNama);
+        tr.appendChild(tdKelas);
+        tr.appendChild(tdStatus);
+        tr.appendChild(tdFoto);
+        tr.appendChild(tdGps);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterTabelRiwayat() {
+      const klsVal = document.getElementById('filterKelasRiwayat').value;
+      const statusVal = document.getElementById('filterStatusRiwayat').value;
+      if (!APP_STATE.dashboardData || !APP_STATE.dashboardData.riwayat) return;
+
+      const filtered = APP_STATE.dashboardData.riwayat.filter(item => {
+        const matchKls = (klsVal === 'Semua' || item.kelas === klsVal);
+        const stLower = String(item.status || '').toLowerCase();
+        const matchStatus = (statusVal === 'Semua' ||
+          stLower === statusVal.toLowerCase() ||
+          (statusVal === 'Izin' && (stLower === 'izin' || stLower === 'sakit')));
+        return matchKls && matchStatus;
+      });
+      renderTabelRiwayat(filtered);
+    }
+
+    // =========================================================================
+    // MASTER DATA KELAS & SISWA DARI API GOOGLE APPS SCRIPT
+    // =========================================================================
+    async function muatMasterData() {
+      try {
+        const res = await callGasApi('getMasterData', {});
+        if (res && res.success && res.data) {
+          APP_STATE.masterData = res.data;
+          isiDropdownKelas(res.data.kelas || []);
+          return;
+        }
+      } catch (err) {
+        console.warn('Menggunakan master data fallback sementara:', err.message);
+      }
+
+      APP_STATE.masterData = FALLBACK_MASTER;
+      isiDropdownKelas(FALLBACK_MASTER.kelas);
+    }
+
+    function isiDropdownKelas(listKelas) {
+      const selForm = document.getElementById('selectKelasForm');
+      const selRiwayat = document.getElementById('filterKelasRiwayat');
+      const selEkspor = document.getElementById('selectEksporKelas');
+
+      selForm.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+      selRiwayat.innerHTML = '<option value="Semua">Semua Kelas</option>';
+      selEkspor.innerHTML = '<option value="Semua">Semua Kelas Terdaftar</option>';
+
+      listKelas.forEach(k => {
+        const opt1 = document.createElement('option');
+        opt1.value = k.nama;
+        opt1.innerText = k.nama;
+        selForm.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = k.nama;
+        opt2.innerText = k.nama;
+        selRiwayat.appendChild(opt2);
+
+        const opt3 = document.createElement('option');
+        opt3.value = k.nama;
+        opt3.innerText = k.nama;
+        selEkspor.appendChild(opt3);
+      });
+    }
+
+    function filterSiswaByKelas(kelasNama) {
+      const selSiswa = document.getElementById('selectSiswaForm');
+      selSiswa.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>';
+
+      if (!kelasNama || !APP_STATE.masterData || !APP_STATE.masterData.siswa) return;
+
+      const filtered = APP_STATE.masterData.siswa.filter(s => s.kelas === kelasNama);
+      filtered.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.nis;
+        opt.innerText = s.nama;
+        selSiswa.appendChild(opt);
+      });
+    }
+
+    // =========================================================================
+    // FITUR EKSPOR LAPORAN CSV DARI API GOOGLE APPS SCRIPT
+    // =========================================================================
+    async function unduhLaporanCSV() {
+      const kelas = document.getElementById('selectEksporKelas').value;
+      const bln = document.getElementById('selectEksporBulan').value;
+      const thn = document.getElementById('selectEksporTahun').value;
+      const periode = thn + '-' + bln;
+      const btn = document.getElementById('btnUnduhLaporan');
+
+      btn.disabled = true;
+      btn.innerText = 'Mempersiapkan File CSV...';
+
+      try {
+        const res = await callGasApi('eksporDataAbsensi', {
+          filterKelas: kelas,
+          filterBulan: periode
+        });
+
+        btn.disabled = false;
+        btn.innerText = 'Unduh File Rekap (.CSV / Excel)';
+
+        if (res && res.success && res.csv) {
+          downloadCSVBlob(res.csv, 'Rekap_Absensi_' + kelas + '_' + periode + '.csv');
+          showToast('Laporan berhasil diunduh (' + (res.totalBaris || 0) + ' baris)!', 'success');
+        } else {
+          showToast(res ? res.message : 'Belum ada data absensi untuk periode ini.', 'error');
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerText = 'Unduh File Rekap (.CSV / Excel)';
+        showToast('Gagal mengekspor data: ' + err.message, 'error');
+      }
+    }
+
+    function downloadCSVBlob(csvText, filename) {
+      const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // =========================================================================
+    // HELPER KONVERSI URL FOTO GOOGLE DRIVE & MODAL PREVIEW
+    // =========================================================================
+    function extractDriveFileId(url) {
+      if (!url) return '';
+      const str = String(url);
+      const matchIdParam = str.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (matchIdParam && matchIdParam[1]) return matchIdParam[1];
+      const matchFileD = str.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (matchFileD && matchFileD[1]) return matchFileD[1];
+      return '';
+    }
+
+    function bukaModalFoto(url, nama, info) {
+      document.getElementById('modalFotoNama').innerText = nama || 'Foto Presensi Siswa';
+      document.getElementById('modalFotoInfo').innerText = info || '';
+
+      const imgEl = document.getElementById('modalFotoSrc');
+      const linkEl = document.getElementById('modalFotoLinkDrive');
+      const fileId = extractDriveFileId(url);
+
+      if (fileId) {
+        // Endpoint thumbnail Google Drive bebas blokir cross-origin untuk tag <img> di GitHub Pages
+        imgEl.src = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w800';
+        imgEl.onerror = function () {
+          imgEl.onerror = null;
+          imgEl.src = 'https://drive.google.com/uc?export=view&id=' + fileId;
+        };
+        linkEl.href = 'https://drive.google.com/file/d/' + fileId + '/view';
+      } else {
+        imgEl.src = url;
+        linkEl.href = url;
+      }
+
+      document.getElementById('modalFoto').classList.remove('hidden');
+    }
+
+    function tutupModalFoto() {
+      document.getElementById('modalFoto').classList.add('hidden');
+    }
+
+    function handleSearch(q) {
+      const query = String(q || '').toLowerCase();
+      if (!APP_STATE.dashboardData || !APP_STATE.dashboardData.riwayat) return;
+
+      const filtered = APP_STATE.dashboardData.riwayat.filter(r => {
+        return String(r.nama || '').toLowerCase().includes(query) ||
+          String(r.nis || '').toLowerCase().includes(query) ||
+          String(r.kelas || '').toLowerCase().includes(query);
+      });
+      renderTabelRiwayat(filtered);
+    }
+
+    function showToast(msg, type) {
+      const toast = document.getElementById('toastNotification');
+      const box = document.getElementById('toastBox');
+      const text = document.getElementById('toastMessage');
+      const icon = document.getElementById('toastIcon');
+
+      text.innerText = msg;
+
+      if (type === 'success') {
+        box.className = 'bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs md:text-sm font-semibold';
+        icon.innerHTML = '<svg class="w-5 h-5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+      } else if (type === 'error') {
+        box.className = 'bg-red-600 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs md:text-sm font-semibold';
+        icon.innerHTML = '<svg class="w-5 h-5 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+      } else {
+        box.className = 'bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs md:text-sm font-semibold';
+        icon.innerHTML = '<svg class="w-5 h-5 text-orange-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+      }
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 4000);
+    }
+  </script>
+</body>
+
+</html>
