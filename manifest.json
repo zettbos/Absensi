@@ -1,0 +1,200 @@
+{
+  "id": "/Absensi/?source=pwa",
+  "name": "Dashboard Absensi Siswa Cerdas",
+  "short_name": "Absensi Siswa",
+  "description": "Sistem Presensi Digital Siswa Cerdas berbasis Live Kamera Selfie, Lokasi GPS & Sinkronisasi Otomatis Google Drive.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "tabbed",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "portrait-primary",
+  "background_color": "#f4f7fb",
+  "theme_color": "#f4f7fb",
+  "lang": "id",
+  "dir": "ltr",
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "categories": [
+    "education",
+    "productivity",
+    "utilities"
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://zettbos.github.io/Absensi/manifest.json"
+    },
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=io.github.zettbos.twa",
+      "id": "io.github.zettbos.twa"
+    }
+  ],
+  "scope_extensions": [
+    {
+      "type": "origin",
+      "origin": "https://zettbos.github.io"
+    },
+    {
+      "type": "origin",
+      "origin": "https://script.google.com"
+    }
+  ],
+  "launch_handler": {
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
+  },
+  "edge_side_panel": {
+    "preferred_width": 420
+  },
+  "note_taking": {
+    "new_note_url": "./index.html?tab=kamera"
+  },
+  "tab_strip": {
+    "home_tab": {
+      "url": "./index.html",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    "new_tab_button": {
+      "url": "./index.html?tab=kamera"
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "./index.html?tab=ekspor",
+      "accept": {
+        "text/csv": [
+          ".csv"
+        ]
+      },
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ],
+      "launch_type": "single-client"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+absensi",
+      "url": "./index.html?nis=%s"
+    }
+  ],
+  "share_target": {
+    "action": "./index.html?tab=kamera",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "widgets": [
+    {
+      "name": "Ringkasan Absensi Siswa",
+      "short_name": "Absensi",
+      "description": "Pantau statistik kehadiran siswa harian secara cepat",
+      "tag": "absensi-siswa-widget",
+      "ms_ac_template": "./absensi-template.json",
+      "data": "./absensi-data.json",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "./screen-mobile.png",
+          "sizes": "720x1280",
+          "label": "Widget Statistik Kehadiran Siswa"
+        }
+      ],
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ],
+      "auth": false,
+      "update": 900
+    }
+  ],
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./screen-mobile.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tampilan Mobile Absensi Siswa Cerdas"
+    },
+    {
+      "src": "./screen-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard Monitoring Absensi Kelas & Siswa"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mulai Absen Kamera",
+      "short_name": "Absen Kamera",
+      "description": "Buka kamera langsung untuk melakukan presensi selfie",
+      "url": "./index.html?tab=kamera",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Riwayat Presensi",
+      "short_name": "Data Presensi",
+      "description": "Lihat data kehadiran siswa hari ini",
+      "url": "./index.html?tab=riwayat",
+      "icons": [
+        {
+          "src": "./icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
