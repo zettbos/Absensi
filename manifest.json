@@ -1,0 +1,96 @@
+{
+  "id": "./?source=pwa",
+  "name": "Dashboard Absensi Siswa Cerdas",
+  "short_name": "Absensi Siswa",
+  "description": "Sistem Presensi Digital Siswa Cerdas berbasis Live Kamera Selfie, Lokasi GPS & Sinkronisasi Otomatis Google Drive.",
+  "start_url": "./index.html?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "portrait-primary",
+  "background_color": "#f4f7fb",
+  "theme_color": "#f97316",
+  "lang": "id",
+  "dir": "ltr",
+  "categories": [
+    "education",
+    "productivity",
+    "utilities"
+  ],
+  "prefer_related_applications": false,
+  "launch_handler": {
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
+  },
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./screenshots/screen-mobile.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tampilan Mobile Absensi Siswa Cerdas"
+    },
+    {
+      "src": "./screenshots/screen-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard Monitoring Absensi Kelas & Siswa"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mulai Absen Kamera",
+      "short_name": "Absen Kamera",
+      "description": "Buka kamera langsung untuk melakukan presensi selfie",
+      "url": "./index.html?tab=kamera",
+      "icons": [
+        {
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Riwayat Presensi",
+      "short_name": "Data Presensi",
+      "description": "Lihat data kehadiran siswa hari ini",
+      "url": "./index.html?tab=riwayat",
+      "icons": [
+        {
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
+
