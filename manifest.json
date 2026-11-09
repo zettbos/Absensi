@@ -1,5 +1,5 @@
 {
-  "id": "/Absensi/?source=pwa",
+  "id": "./?source=pwa",
   "name": "Dashboard Absensi Siswa Cerdas",
   "short_name": "Absensi Siswa",
   "description": "Sistem Presensi Digital Siswa Cerdas berbasis Live Kamera Selfie, Lokasi GPS & Sinkronisasi Otomatis Google Drive.",
@@ -27,7 +27,7 @@
   "related_applications": [
     {
       "platform": "webapp",
-      "url": "https://zettbos.github.io/Absensi/manifest.json"
+      "url": "https://zettbos.github.io/manifest.json"
     },
     {
       "platform": "play",
