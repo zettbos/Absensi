@@ -37,9 +37,11 @@
   ],
   "scope_extensions": [
     {
+      "type": "origin",
       "origin": "https://zettbos.github.io"
     },
     {
+      "type": "origin",
       "origin": "https://script.google.com"
     }
   ],
