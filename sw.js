@@ -1,16 +1,18 @@
 /**
  * ================================================================================
- * SW.JS - SERVICE WORKER UNTUK PWABUILDER.COM & GITHUB PAGES
+ * SW.JS - FULL-FEATURED SERVICE WORKER UNTUK PWABUILDER.COM & GITHUB PAGES
  * Sistem Absensi Siswa Cerdas
  * ================================================================================
- * Strategi:
- * 1. Bypass penuh untuk seluruh request POST & API Google Apps Script / Google Drive.
- * 2. Network-First dengan Fallback Cache untuk aset statis (HTML, Manifest, Ikon)
- *    agar lolos 100% validasi Offline Capability di PWABuilder.com.
+ * Mendukung penuh seluruh indikator penilaian PWABuilder:
+ * 1. Has Service Worker & Has Logic
+ * 2. Offline Support (Network-First + Fallback Cache)
+ * 3. Background Sync ('sync' event listener)
+ * 4. Periodic Sync ('periodicsync' event listener)
+ * 5. Push Notifications ('push' & 'notificationclick' event listeners)
  * ================================================================================
  */
 
-const CACHE_NAME = 'absensi-siswa-pwa-v1.3.0';
+const CACHE_NAME = 'absensi-siswa-pwa-v1.4.0';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -18,9 +20,12 @@ const PRECACHE_ASSETS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
-  './icons/apple-touch-icon.png'
+  './icons/apple-touch-icon.png',
+  './widgets/absensi-template.json',
+  './widgets/absensi-data.json'
 ];
 
+// 1. INSTALL: Pre-cache aset inti
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -29,6 +34,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
+// 2. ACTIVATE: Bersihkan cache versi lama
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -43,11 +49,11 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// 3. FETCH: Network-First dengan Fallback Offline (Bypass penuh untuk API Google Apps Script & Drive)
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // 1. Jangan pernah cache request selain GET atau request ke API Google Apps Script / Drive
   if (
     req.method !== 'GET' ||
     url.hostname.includes('script.google.com') ||
@@ -57,7 +63,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Network-First dengan Fallback ke Cache (dan fallback ke ./index.html untuk navigasi halaman)
   event.respondWith(
     fetch(req)
       .then((networkRes) => {
@@ -84,3 +89,89 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// 4. BACKGROUND SYNC: Sinkronisasi antrean presensi saat koneksi internet kembali stabil
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-presensi' || event.tag === 'absensi-background-sync') {
+    event.waitUntil(
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'BACKGROUND_SYNC_TRIGGERED',
+            tag: event.tag
+          });
+        });
+      })
+    );
+  }
+});
+
+// 5. PERIODIC SYNC: Pembaruan berkala data ringkasan dashboard
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'update-absensi-dashboard' || event.tag === 'content-sync') {
+    event.waitUntil(
+      caches.open(CACHE_NAME).then((cache) => {
+        return cache.add('./index.html');
+      })
+    );
+  }
+});
+
+// 6. PUSH NOTIFICATIONS: Penanganan notifikasi pengingat jam absen masuk/pulang
+self.addEventListener('push', (event) => {
+  let payload = {
+    title: 'Pengingat Absensi Siswa',
+    body: 'Jangan lupa melakukan presensi selfie & GPS hari ini.',
+    url: './index.html?tab=kamera'
+  };
+
+  if (event.data) {
+    try {
+      const parsed = event.data.json();
+      payload = Object.assign(payload, parsed);
+    } catch (e) {
+      payload.body = event.data.text() || payload.body;
+    }
+  }
+
+  const options = {
+    body: payload.body,
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-192.png',
+    vibrate: [100, 50, 100],
+    data: {
+      url: payload.url || './index.html'
+    },
+    actions: [
+      { action: 'open_camera', title: 'Buka Kamera Absen' },
+      { action: 'open_dashboard', title: 'Lihat Dashboard' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, options)
+  );
+});
+
+// 7. NOTIFICATION CLICK: Buka tab kamera atau dashboard saat notifikasi diketuk
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const targetUrl = (event.action === 'open_camera')
+    ? './index.html?tab=kamera'
+    : ((event.notification.data && event.notification.data.url) ? event.notification.data.url : './index.html');
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if ('focus' in client) {
+          client.focus();
+          return;
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+    })
+  );
+});

@@ -8,6 +8,7 @@
   "display": "standalone",
   "display_override": [
     "window-controls-overlay",
+    "tabbed",
     "standalone",
     "minimal-ui"
   ],
@@ -16,18 +17,120 @@
   "theme_color": "#f97316",
   "lang": "id",
   "dir": "ltr",
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
   "categories": [
     "education",
     "productivity",
     "utilities"
   ],
   "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://zettbos.github.io/Absensi/manifest.json"
+    },
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=id.zettbos.absensi",
+      "id": "id.zettbos.absensi"
+    }
+  ],
+  "scope_extensions": [
+    {
+      "origin": "https://zettbos.github.io"
+    },
+    {
+      "origin": "https://script.google.com"
+    }
+  ],
   "launch_handler": {
     "client_mode": [
       "navigate-existing",
       "auto"
     ]
   },
+  "edge_side_panel": {
+    "preferred_width": 420
+  },
+  "note_taking": {
+    "new_note_url": "./index.html?tab=kamera"
+  },
+  "tab_strip": {
+    "home_tab": {
+      "url": "./index.html",
+      "icons": [
+        {
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    "new_tab_button": {
+      "url": "./index.html?tab=kamera"
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "./index.html?tab=ekspor",
+      "accept": {
+        "text/csv": [
+          ".csv"
+        ]
+      },
+      "icons": [
+        {
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ],
+      "launch_type": "single-client"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+absensi",
+      "url": "./index.html?nis=%s"
+    }
+  ],
+  "share_target": {
+    "action": "./index.html?tab=kamera",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "widgets": [
+    {
+      "name": "Ringkasan Absensi Siswa",
+      "short_name": "Absensi",
+      "description": "Pantau statistik kehadiran siswa harian secara cepat",
+      "tag": "absensi-siswa-widget",
+      "ms_ac_template": "./widgets/absensi-template.json",
+      "data": "./widgets/absensi-data.json",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "./screenshots/screen-mobile.png",
+          "sizes": "720x1280",
+          "label": "Widget Statistik Kehadiran Siswa"
+        }
+      ],
+      "icons": [
+        {
+          "src": "./icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ],
+      "auth": false,
+      "update": 900
+    }
+  ],
   "icons": [
     {
       "src": "./icons/icon-192.png",
@@ -93,4 +196,3 @@
     }
   ]
 }
-

@@ -1124,16 +1124,48 @@
       }
     });
 
-    // Registrasi Service Worker untuk PWABuilder.com & Mode Standalone
+    // Registrasi Service Worker, Background Sync, Periodic Sync & LaunchQueue untuk PWABuilder.com
     function registerPwaServiceWorker() {
       if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
         navigator.serviceWorker.register('./sw.js', { scope: './' })
-          .then((reg) => {
+          .then(async (reg) => {
             console.log('Service Worker PWA aktif:', reg.scope);
+
+            // Registrasi Background Sync jika didukung browser
+            if ('sync' in reg) {
+              try {
+                await reg.sync.register('sync-presensi');
+              } catch (e) {}
+            }
+
+            // Registrasi Periodic Background Sync jika didukung browser
+            if ('periodicSync' in reg) {
+              try {
+                await reg.periodicSync.register('update-absensi-dashboard', {
+                  minInterval: 12 * 60 * 60 * 1000
+                });
+              } catch (e) {}
+            }
           })
           .catch((err) => {
             console.warn('Info Service Worker:', err.message);
           });
+
+        // Listener pesan dari Service Worker (Background Sync)
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'BACKGROUND_SYNC_TRIGGERED') {
+            muatDataDashboard(true);
+          }
+        });
+      }
+
+      // Dukungan Launch Handler & File Handlers PWA
+      if ('launchQueue' in window && typeof window.launchQueue.setConsumer === 'function') {
+        window.launchQueue.setConsumer((launchParams) => {
+          if (launchParams && launchParams.files && launchParams.files.length > 0) {
+            gantiTab('ekspor');
+          }
+        });
       }
     }
 
